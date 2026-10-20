@@ -1,4 +1,4 @@
-#include"Camera.h"
+#include "Camera.h"
 
 
 
@@ -25,51 +25,50 @@ void Camera::Matrix(Shader& shader, const char* uniform)
 	glUniformMatrix4fv(glGetUniformLocation(shader.ID, uniform), 1, GL_FALSE, glm::value_ptr(cameraMatrix));
 }
 
-void Camera::Inputs(GLFWwindow* window, float dt)
+void Camera::Inputs(GLFWwindow* window, inputhandler input, float dt)
 {
 	this->dt = dt;
-	lastpos = Position;
-	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-	{
+	if (input.is_key_pressed(window, GLFW_KEY_W))
+	{			
 		Position += speed * Orientation * dt;
 	}
-	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+	if (input.is_key_pressed(window, GLFW_KEY_A))
 	{
 		Position += speed * -glm::normalize(glm::cross(Orientation, Up)) * dt;
 	}
-	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+	if (input.is_key_pressed(window, GLFW_KEY_S))
 	{
 		Position += speed * -Orientation * dt;
 	}
-	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+	if (input.is_key_pressed(window, GLFW_KEY_D))
 	{
 		Position += speed * glm::normalize(glm::cross(Orientation, Up)) * dt;
 	}
-	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+	if (input.is_key_pressed(window, GLFW_KEY_SPACE))
 	{
 		Position += speed * Up * dt;
 	}
-	if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
+	if (input.is_key_pressed(window, GLFW_KEY_LEFT_CONTROL))
 	{
 		Position += speed * -Up * dt;
 	}
-	if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+	if (input.is_key_pressed(window, GLFW_KEY_LEFT_SHIFT))
 	{
 		speed = 100.0f;
 	}
-	else if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_RELEASE)
+	else if (input.is_key_pressed(window, GLFW_KEY_LEFT_SHIFT))
 	{
 		speed = 5.0f;
 	}
-	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+	if (input.is_key_pressed(window, GLFW_KEY_ESCAPE))
 	{
 		glfwDestroyWindow(window);
 		glfwTerminate();
 		exitProgram = true;
 		return;
 	}
-	if (glfwGetKey(window, GLFW_KEY_F11) == GLFW_PRESS && KEY_F11_UPDATE == GLFW_RELEASE) {
-		KEY_F11_UPDATE = GLFW_PRESS;
+	if (input.is_key_pressestones(window, GLFW_KEY_F11)) {
+
 		if (fullScreen) {
 			GLFWmonitor* primaryMonitor = glfwGetPrimaryMonitor();
 			const GLFWvidmode* mode = glfwGetVideoMode(primaryMonitor);
@@ -91,7 +90,6 @@ void Camera::Inputs(GLFWwindow* window, float dt)
 			fullScreen = true;
 		}
 	}
-	else if (glfwGetKey(window, GLFW_KEY_F11) == GLFW_RELEASE) KEY_F11_UPDATE = GLFW_RELEASE;
 
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
 

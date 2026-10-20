@@ -76,7 +76,13 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(ProjectDir)Libraries\include;</IncludePath>
-    <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(ProjectDir)Libraries\lib;</LibraryPath>
+    <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(ProjectDir)Libraries\lib;$(ProjectDir)Libraries\include\profiler;</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LibraryPath>$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86)$(ProjectDir)Libraries\include\profiler;</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LibraryPath>$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86)$(ProjectDir)Libraries\include\profiler;</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -143,8 +149,16 @@
     <ClCompile Include="chunk.cpp" />
     <ClCompile Include="collision.cpp" />
     <ClCompile Include="glad.c" />
+    <ClCompile Include="inputhandler.cpp" />
     <ClCompile Include="Inventory.cpp" />
     <ClCompile Include="Libraries\include\glm\detail\glm.cpp" />
+    <ClCompile Include="Libraries\include\imgui\imgui.cpp" />
+    <ClCompile Include="Libraries\include\imgui\imgui_demo.cpp" />
+    <ClCompile Include="Libraries\include\imgui\imgui_draw.cpp" />
+    <ClCompile Include="Libraries\include\imgui\imgui_impl_glfw.cpp" />
+    <ClCompile Include="Libraries\include\imgui\imgui_impl_opengl3.cpp" />
+    <ClCompile Include="Libraries\include\imgui\imgui_tables.cpp" />
+    <ClCompile Include="Libraries\include\imgui\imgui_widgets.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="renderClasses\Mesh.cpp" />
     <ClCompile Include="renderClasses\shaderClass.cpp" />
@@ -158,6 +172,7 @@
     <ClInclude Include="Camera.h" />
     <ClInclude Include="chunk.h" />
     <ClInclude Include="collision.h" />
+    <ClInclude Include="inputhandler.h" />
     <ClInclude Include="Inventory.h" />
     <ClInclude Include="Libraries\include\FastNoiseLite.h" />
     <ClInclude Include="Libraries\include\glad\glad.h" />
@@ -407,6 +422,15 @@
     <ClInclude Include="Libraries\include\glm\vec3.hpp" />
     <ClInclude Include="Libraries\include\glm\vec4.hpp" />
     <ClInclude Include="Libraries\include\glm\vector_relational.hpp" />
+    <ClInclude Include="Libraries\include\imgui\imconfig.h" />
+    <ClInclude Include="Libraries\include\imgui\imgui.h" />
+    <ClInclude Include="Libraries\include\imgui\imgui_impl_glfw.h" />
+    <ClInclude Include="Libraries\include\imgui\imgui_impl_opengl3.h" />
+    <ClInclude Include="Libraries\include\imgui\imgui_impl_opengl3_loader.h" />
+    <ClInclude Include="Libraries\include\imgui\imgui_internal.h" />
+    <ClInclude Include="Libraries\include\imgui\imstb_rectpack.h" />
+    <ClInclude Include="Libraries\include\imgui\imstb_textedit.h" />
+    <ClInclude Include="Libraries\include\imgui\imstb_truetype.h" />
     <ClInclude Include="Libraries\include\KHR\khrplatform.h" />
     <ClInclude Include="Libraries\include\OpenSimplexNoise.hh" />
     <ClInclude Include="Libraries\include\stb\stb_image.h" />
@@ -418,6 +442,8 @@
     <ClInclude Include="world.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include=".gitattributes" />
+    <None Include=".gitignore" />
     <None Include="Libraries\include\glm\detail\func_common.inl" />
     <None Include="Libraries\include\glm\detail\func_common_simd.inl" />
     <None Include="Libraries\include\glm\detail\func_exponential.inl" />
@@ -552,6 +578,7 @@
     <None Include="Libraries\include\glm\gtx\vector_angle.inl" />
     <None Include="Libraries\include\glm\gtx\vector_query.inl" />
     <None Include="Libraries\include\glm\gtx\wrap.inl" />
+    <None Include="README.md" />
     <None Include="res\light.frag" />
     <None Include="res\light.vert" />
     <None Include="res\shader\default.frag" />

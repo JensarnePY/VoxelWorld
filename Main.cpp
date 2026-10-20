@@ -2,11 +2,15 @@
 #include"renderClasses/Mesh.h"
 #include "renderClasses/UI.h"
 #include "renderClasses/shadowMapFBO.h"
-
+#include "imgui/imgui.h"
+#include "imgui/imgui_impl_glfw.h"
+#include "imgui/imgui_impl_opengl3.h"
 #include "world.h"
 #include "chunk.h"
 #include "Inventory.h"
 #include "collision.h"
+
+
 
 int width = 1200;
 int height = 800;
@@ -57,8 +61,8 @@ int main()
 	collision collision;
 	Inventory inventory(window);
 	UI ui(window);
-	ShadowMapFBO shadowmap;
-	shadowmap.Init(1048);
+	inputhandler input;
+	input.define_keys();
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	glCullFace(GL_BACK);
@@ -73,25 +77,78 @@ int main()
 	bool lastmou_right = GLFW_RELEASE;
 	bool lastmou_left = GLFW_RELEASE;
 
+	float main_scale = ImGui_ImplGlfw_GetContentScaleForMonitor(glfwGetPrimaryMonitor());
+
+	IMGUI_CHECKVERSION();
+	ImGui::CreateContext();
+	ImGuiIO& io = ImGui::GetIO(); (void)io;
+	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+	io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
+	ImGui::StyleColorsDark();
+	ImGuiStyle& style = ImGui::GetStyle();
+	style.ScaleAllSizes(main_scale);        // Bake a fixed style scale. (until we have a solution for dynamic style scaling, changing this requires resetting Style + calling this again)
+	style.FontScaleDpi = main_scale;
+
+	ImGui_ImplGlfw_InitForOpenGL(window, true);
+	ImGui_ImplOpenGL3_Init("#version 410");
+
+	bool show_demo_window = true;
+	bool show_another_window = false;
+	ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+
+	//ImGui::SetCurrentContext();
 	while (!glfwWindowShouldClose(window))
 	{
-		cn++;
-		double timediff = glfwGetTime() - time2;
 		double dt = glfwGetTime() - time;
 		time = glfwGetTime();
-		if (glfwGetTime() - time2 >= 0.2)
+		ImGui_ImplOpenGL3_NewFrame();
+		ImGui_ImplGlfw_NewFrame();
+		ImGui::NewFrame();
+		
+		glfwPollEvents();
+		if (glfwGetWindowAttrib(window, GLFW_ICONIFIED) != 0)
 		{
-			std::string FPS = std::to_string((1.0 / timediff) * cn);
-			std::string ms = std::to_string((timediff / cn) * 1000);
-			std::string newTitle = FPS + "FPS / " + ms + "ms";
-			glfwSetWindowTitle(window, newTitle.c_str());
-
-			time2 = glfwGetTime();
-			cn = 0;
-			glfwGetWindowSize(window, &width, &height);
-			glViewport(0, 0, width, height);
-			camera.setWinSize(width, height);
+			ImGui_ImplGlfw_Sleep(10);
+			continue;
 		}
+
+		if (show_demo_window)
+			ImGui::ShowDemoWindow(&show_demo_window);
+
+		{
+			static float f = 0.0f;
+			static int counter = 0;
+
+			ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
+
+			ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
+			ImGui::Checkbox("Demo Window", &show_demo_window);      // Edit bools storing our window open/close state
+			ImGui::Checkbox("Another Window", &show_another_window);
+
+			ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
+			ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
+
+			if (ImGui::Button("Button"))                            // Buttons return true when clicked (most widgets return true when edited/activated)
+				counter++;
+			ImGui::SameLine();
+			ImGui::Text("counter = %d", counter);
+
+			ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
+			ImGui::End();
+		}
+
+		if (show_another_window)
+		{
+			ImGui::Begin("Another Window", &show_another_window);   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
+			ImGui::Text("Hello from another window!");
+			if (ImGui::Button("Close Me"))
+				show_another_window = false;
+			ImGui::End();
+		}
+
+		
+
+		input.update_keys(window);
 
 		if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS && lastmou_right == GLFW_RELEASE) {
 			lastmou_right = GLFW_PRESS;
@@ -159,7 +216,7 @@ int main()
 		if (camera.exit()) return 0;
 
 
-		camera.Inputs(window, dt);
+		camera.Inputs(window, input, dt);
 		camera.updateMatrix(70.0f, 0.1f, 10000.0f);
 
 		defaultshader.Activate();
@@ -193,10 +250,19 @@ int main()
 		//__________________________________
 		ui.render(uishader);
 
+		ImGui::Render();
+		int display_w, display_h;
+		glfwGetFramebufferSize(window, &display_w, &display_h);
+		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
+
+	ImGui_ImplOpenGL3_Shutdown();
+	ImGui_ImplGlfw_Shutdown();
+	ImGui::DestroyContext();
 
 	defaultshader.Delete();
 	glfwDestroyWindow(window);

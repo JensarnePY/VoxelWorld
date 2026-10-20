@@ -9,7 +9,8 @@
 #include<glm/gtx/rotate_vector.hpp>
 #include<glm/gtx/vector_angle.hpp>
 
-#include"renderClasses/shaderClass.h"
+#include "inputhandler.h"
+#include "renderClasses/shaderClass.h"
 
 class Camera
 {
@@ -26,7 +27,6 @@ public:
 	glm::vec3 vel = glm::vec3(0.0f);
 
 	bool exitProgram = false;
-	bool KEY_F11_UPDATE = GLFW_RELEASE;
 	bool fullScreen = false;
 
 	int width;
@@ -39,7 +39,7 @@ public:
 
 	void updateMatrix(float FOVdeg, float nearPlane, float farPlane);
 	void Matrix(Shader& shader, const char* uniform);
-	void Inputs(GLFWwindow* window, float dt);
+	void Inputs(GLFWwindow* window, inputhandler input, float dt);
 	bool exit();
 	void setWinSize(int width, int height);
 };

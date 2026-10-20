@@ -3,6 +3,7 @@
 #include "world.h"
 #include "math.h"
 
+
 class chunkdata {
 public:
 	glm::vec3 pos;
