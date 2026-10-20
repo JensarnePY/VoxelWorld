@@ -17,7 +17,7 @@ public:
 	bool water_loaded_to_gpu = false;
 	std::vector <float> blockIdList;
 	std::vector <bool> waterList;
-	static constexpr int chunkSize = 32;
+	static constexpr int chunkSize = 64;
 
 	chunkdata(glm::vec3 position) : pos(position) {}
 

@@ -299,7 +299,8 @@ void chunkdata::gen_chunkdata(const FastNoiseLite* Noise) {
 			make_water_vertices();
 		}
 	}
-
+	NoiseList.clear();
+	NoiseList3D.clear();
 	gen = true;
 }
 

@@ -41,7 +41,7 @@ void Mesh::Draw(Shader& shader, Camera& camera)
 
 	glBindVertexArray(EmptyVAOID);
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, SSBOvert);
-	glDrawArrays(GL_TRIANGLES, 0, vertices.size() * 6);
+	glDrawArrays(GL_TRIANGLES, 0, vertices.size() * 3);
 }
 
 const void WaterMesh::makeMash(std::vector <Texture>& textures) {

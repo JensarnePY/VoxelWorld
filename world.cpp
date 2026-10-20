@@ -1,5 +1,8 @@
-
 #include "world.h"
+
+void world::print_vec3(glm::vec3 vec3) {
+	std::cout << vec3.x << ", " << vec3.y << ", " << vec3.z << ", \n";
+}
 
 chunkdata* world::getchunk(int x, int y, int z) {
 	for (chunkdata& ch : chunk) {
@@ -9,10 +12,25 @@ chunkdata* world::getchunk(int x, int y, int z) {
 	return nullptr;
 }
 
-static bool chunkExists(const std::vector<chunkdata>& chunks, const glm::vec3& pos)
-{
+static bool chunkExists(const std::vector<chunkdata>& chunks, const glm::vec3& pos){
 	return std::any_of(chunks.begin(), chunks.end(),
 		[&pos](const chunkdata& ch) { return ch.pos == pos; });
+}
+
+void gen_q(std::vector<chunkdata>* genqueue, const FastNoiseLite* Noise, bool* gen_complete) {
+	std::cout << "ingame gen start Thread ID: " << std::this_thread::get_id() << "\n";
+
+	while (1) {
+		if (*gen_complete == false) {
+			for (auto& ch : *genqueue) {
+				ch.gen_chunkdata(Noise);
+			}
+			*gen_complete = true;
+		}
+
+	}
+
+	std::cout << "ingame gen end Thread ID: " << std::this_thread::get_id() << "\n";
 }
 
 world::world() {
@@ -22,11 +40,19 @@ world::world() {
 	Noise.SetFrequency(0.01f);
 
 	Noise.SetFractalType(FastNoiseLite::FractalType_FBm);
-	Noise.SetFractalOctaves(3);
+	Noise.SetFractalOctaves(4);
 	Noise.SetFractalLacunarity(3.0f);
 	Noise.SetFractalGain(0.5f);
 	Noise.SetFractalWeightedStrength(1.0f);
-	
+
+	gen_thread = std::thread(&gen_q, &genqueue, &Noise, &gen_complete);
+}
+world::~world() {
+	//if (gen_thread.joinable()) {
+	//	gen_thread.join();
+	//	gen_thread.~thread();
+	//}
+
 }
 
 raycastRES world::raycast(const glm::vec3 start, const glm::vec3 dir, const float max_distan, bool the_hit_bafore) {
@@ -67,12 +93,10 @@ raycastRES world::raycast(const glm::vec3 start, const glm::vec3 dir, const floa
 	return { glm::vec3(0.0f), nullptr, false, 0 };
 }
 
-static void gen_chunk(chunkdata* chunk, const FastNoiseLite* Noise) {
-	chunk->gen_chunkdata(Noise);
-}
-
-void world::print_vec3(glm::vec3 vec3) {
-	std::cout << vec3.x << ", " << vec3.y << ", " << vec3.z << ", \n";
+void world::gen() {
+	for (auto& ch : chunk) {
+		ch.gen_chunkdata(&Noise);
+	}
 }
 
 void world::pre_load_chunk(glm::vec3 pos, int renderDistent) {
@@ -93,15 +117,16 @@ void world::pre_load_chunk(glm::vec3 pos, int renderDistent) {
 			}
 		}
 	}
-
 	std::cout << ChunkToLoad.size() << " ChunkToLoad\n";
+	//std::cout << "mainThread ID: " << std::this_thread::get_id() << "\n";
 
-	// start to load the mesh in threads
 	for (auto& pos : ChunkToLoad) {
 		chunk.emplace_back(glm::vec3(pos));
-		chunkdata& chunk_ref = chunk.back();
-		std::future<void> mesh_fut = std::async(std::launch::async, gen_chunk, &chunk_ref, &Noise);
 	}
+
+	std::thread t1(&world::gen, this);
+	t1.join();
+
 
 	// load the mesh to the GPU
 	for (auto& chunk : chunk) {
@@ -122,67 +147,81 @@ void world::pre_load_chunk(glm::vec3 pos, int renderDistent) {
 
 void world::update(Camera& camera, int renderDistent) {
 
-	if (load_terain == true) {
-		//auto start = glfwGetTime();
-		std::vector<glm::vec3>ChunkToLoad;
-		int current_chunkX = std::floor(camera.Position.x / chunkSize);
-		int current_chunkY = std::floor(camera.Position.y / chunkSize);
-		int current_chunkZ = std::floor(camera.Position.z / chunkSize);
+	player_last_chunk = player_chunk;
+	player_chunk = glm::ivec3(camera.Position / glm::vec3(chunkSize));
 
-		for (int x = -renderDistent; x <= renderDistent; x++) {
-			for (int y = -renderDistent / 2; y <= renderDistent / 2; y++) {
-				for (int z = -renderDistent; z <= renderDistent; z++) {
+	if (gen_complete && Enable_terrain_gen) {
 
-					glm::vec3 newChunkPos(
-						(current_chunkX + x) * chunkSize,
-						(current_chunkY + y) * chunkSize,
-						(current_chunkZ + z) * chunkSize);
+		for (auto& pos : genqueue) {
 
-					if (!chunkExists(chunk, newChunkPos) && ChunkToLoad.size() <= m_MAX_threads_gen / 2 && m_threads_gen < m_MAX_threads_gen) {
-						ChunkToLoad.push_back(newChunkPos);
-						m_threads_gen++;
+			if (pos.mesh.vertices.size() != 0) {
+				//std::cout << "e\n";
+				pos.mesh.makeMash(textures);
+				pos.render = true;
+				pos.loaded_to_gpu = true;
+			}
+			if (pos.watermesh.vertices.size() != 0) {
+				pos.watermesh.makeMash(watertextures);
+				pos.waterrender = true;
+				pos.water_loaded_to_gpu = true;
+			}
+			if (pos.mesh.vertices.size() == 0 && pos.watermesh.vertices.size() == 0) {
+				empty_chunk.emplace_back(pos);
+			}
+			else {
+				chunk.emplace_back(pos);
+			}
+		}
+		genqueue.clear();
+
+		//if (player_chunk == player_last_chunk) {
+			for (int x = -renderDistent; x <= renderDistent; x++) {
+				for (int y = -renderDistent / 2; y <= renderDistent / 2; y++) {
+					for (int z = -renderDistent; z <= renderDistent; z++) {
+
+						glm::vec3 newChunkPos((player_chunk.x + x) * chunkSize, (player_chunk.y + y) * chunkSize, (player_chunk.z + z) * chunkSize);
+
+						if (!chunkExists(chunk, newChunkPos) && !chunkExists(empty_chunk, newChunkPos) && genqueue.size() <= m_MAX_threads_gen) {
+							//std::cout << "Adding chunk to genqueue: " << newChunkPos.x << ", " << newChunkPos.y << ", " << newChunkPos.z << "\n";
+							genqueue.push_back(newChunkPos);
+						}
 					}
 				}
 			}
-		}
-		//std::cout << (glfwGetTime() - start) * 1000 << "ms \n";
-		for (auto& pos : ChunkToLoad) {
-			chunk.emplace_back(pos);
-			chunkdata& chunk_ref = chunk.back();
-			std::future<void> mesh_fut = std::async(std::launch::async, gen_chunk, &chunk_ref, &Noise);
-			m_threads_gen--;
-		}
-
-		// load the mesh to the GPU
-		for (auto& chunk : chunk) {
-
-			if (glm::ivec3(camera.Position / glm::vec3(32)) == glm::ivec3(chunk.pos / glm::vec3(32))) {
-				player_chunk = chunk.pos;
-			}
-			if (chunk.gen == false && glm::distance(camera.Position, chunk.pos) < m_render_distent) {
-				chunk.reload();
-			}
-			if (glm::distance(camera.Position, chunk.pos) > m_render_distent) {
-				chunk.gen = false;
-				chunk.render = false;
-				chunk.waterrender = false;
-				chunk.loaded_to_gpu = false;
-				chunk.water_loaded_to_gpu = false;
-				chunk.mesh.clear();
-				chunk.watermesh.clear();
-			}
-			if (chunk.gen == true && chunk.mesh.vertices.size() != 0 && chunk.loaded_to_gpu == false) {
-				chunk.mesh.makeMash(textures);
-				chunk.render = true;
-				chunk.loaded_to_gpu = true;
-			}
-			if (chunk.gen == true && chunk.watermesh.vertices.size() != 0 && chunk.water_loaded_to_gpu == false) {
-				chunk.watermesh.makeMash(watertextures);
-				chunk.waterrender = true;
-				chunk.water_loaded_to_gpu = true;
-			}
-		}
+		//}
+		gen_complete = false;
 	}
+
+
+	
+	// load the mesh to the GPU
+	//for (auto& chunk : chunk) {
+	//
+	//	
+	//
+	//	if (chunk.gen == false && glm::distance(camera.Position, chunk.pos) < m_render_distent) {
+	//		chunk.reload();
+	//	}
+	//	if (glm::distance(camera.Position, chunk.pos) > m_render_distent) {
+	//		chunk.gen = false;
+	//		chunk.render = false;
+	//		chunk.waterrender = false;
+	//		chunk.loaded_to_gpu = false;
+	//		chunk.water_loaded_to_gpu = false;
+	//		chunk.mesh.clear();
+	//		chunk.watermesh.clear();
+	//	}
+	//	if (chunk.gen == true && chunk.mesh.vertices.size() != 0 && chunk.loaded_to_gpu == false) {
+	//		chunk.mesh.makeMash(textures);
+	//		chunk.render = true;
+	//		chunk.loaded_to_gpu = true;
+	//	}
+	//	if (chunk.gen == true && chunk.watermesh.vertices.size() != 0 && chunk.water_loaded_to_gpu == false) {
+	//		chunk.watermesh.makeMash(watertextures);
+	//		chunk.waterrender = true;
+	//		chunk.water_loaded_to_gpu = true;
+	//	}
+	//}
 }
 
 void  world::render(Shader& shader, Shader& watershader, Camera& camera) {

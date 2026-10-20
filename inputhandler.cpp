@@ -6,7 +6,7 @@ void inputhandler::define_keys()
 	m_keys.resize(348);
 	for (int i = 0; i < 348; i++)
 	{
-		m_keys[i] = inputdata{ (short)i, false, false};
+		m_keys[i] = inputdata{ (short)i, false, false, false};
 	}
 }
 
@@ -30,21 +30,29 @@ bool inputhandler::get_key_beforestate(short key)
 	return m_keys[key].beforestate;
 }
 
-bool inputhandler::is_key_pressed(GLFWwindow* window, int key)
+bool inputhandler::is_key_pressed(GLFWwindow* window, short key)
 {
 	bool isPressed = glfwGetKey(window, key) == GLFW_PRESS;
 	m_keys[key].state = isPressed;
 	return isPressed;
 }
 
-bool inputhandler::is_key_pressestones(GLFWwindow* window, int key)
+bool inputhandler::is_key_pressestones(GLFWwindow* window, short key)
 {
 	if (glfwGetKey(window, key) == GLFW_PRESS) {
 		m_keys[key].state = true;
-		if (m_keys[key].beforestate == false) {
-			return true;
-		}
+		if (m_keys[key].beforestate == false) { return true; }
 	}
-
 	return false;
+}
+
+bool inputhandler::switch_key(GLFWwindow* window, short key) {
+
+	if (is_key_pressed(window, key)) {
+
+		e = true;
+	}
+	std::cout << e << "\n";
+	return e;
+
 }

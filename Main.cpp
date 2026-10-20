@@ -1,7 +1,6 @@
 
 #include"renderClasses/Mesh.h"
 #include "renderClasses/UI.h"
-#include "renderClasses/shadowMapFBO.h"
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_glfw.h"
 #include "imgui/imgui_impl_opengl3.h"
@@ -10,10 +9,10 @@
 #include "Inventory.h"
 #include "collision.h"
 
-
-
 int width = 1200;
 int height = 800;
+
+
 
 int main()
 {
@@ -33,7 +32,7 @@ int main()
 
 	gladLoadGL();
 	glViewport(0, 0, width, height);
-
+	
 
 	Shader defaultshader("res/shader/default.vert", "res/shader/default.frag");
 	Shader watershader(  "res/shader/water.vert",   "res/shader/water.frag");
@@ -49,14 +48,16 @@ int main()
 
 
 	/*
-	5 chunks    650ms
+	5 chunks     650ms
 	10 chunks   5100ms
 	20 chunks  38200ms
 	40 chunks N/Ams
 	to pre load
 	*/
+
 	world World;
-	World.pre_load_chunk(glm::vec3(0.0f), 5);
+	World.pre_load_chunk(glm::vec3(0.0f), 3);
+
 	Camera camera(width, height, glm::vec3(0.0f, 100.0f, 0.0f));
 	collision collision;
 	Inventory inventory(window);
@@ -92,7 +93,7 @@ int main()
 	ImGui_ImplGlfw_InitForOpenGL(window, true);
 	ImGui_ImplOpenGL3_Init("#version 410");
 
-	bool show_demo_window = true;
+	//bool show_demo_window = true;
 	bool show_another_window = false;
 	ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
@@ -101,6 +102,7 @@ int main()
 	{
 		double dt = glfwGetTime() - time;
 		time = glfwGetTime();
+
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
@@ -111,42 +113,6 @@ int main()
 			ImGui_ImplGlfw_Sleep(10);
 			continue;
 		}
-
-		if (show_demo_window)
-			ImGui::ShowDemoWindow(&show_demo_window);
-
-		{
-			static float f = 0.0f;
-			static int counter = 0;
-
-			ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
-
-			ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
-			ImGui::Checkbox("Demo Window", &show_demo_window);      // Edit bools storing our window open/close state
-			ImGui::Checkbox("Another Window", &show_another_window);
-
-			ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
-			ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
-
-			if (ImGui::Button("Button"))                            // Buttons return true when clicked (most widgets return true when edited/activated)
-				counter++;
-			ImGui::SameLine();
-			ImGui::Text("counter = %d", counter);
-
-			ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
-			ImGui::End();
-		}
-
-		if (show_another_window)
-		{
-			ImGui::Begin("Another Window", &show_another_window);   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
-			ImGui::Text("Hello from another window!");
-			if (ImGui::Button("Close Me"))
-				show_another_window = false;
-			ImGui::End();
-		}
-
-		
 
 		input.update_keys(window);
 
@@ -229,25 +195,63 @@ int main()
 
 		//update all
 		//__________________________________
+		
+		auto updatestart = glfwGetTime();
 
 		World.update(camera, 10);
-		inventory.update();
-		collision.player_collision(camera, World);
-		ui.update(inventory);
+		//inventory.update();
+		//collision.player_collision(camera, World);
+		//ui.update(inventory);
 
-		// shadowpass & render
+		auto updateend = (glfwGetTime() - updatestart) * 1000;
+
+		// render
 		//_______________________________
 
 		glClearColor(0.07f, 0.13f, 0.17f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-
+		auto start = glfwGetTime();
 		World.render(defaultshader, watershader, camera);
-		//
+		//std::cout << (glfwGetTime() - start) * 1000 << "ms \n";
 
 
 		// render ui
 		//__________________________________
+		{
+			static float f = 0.0f;
+			static int counter = 0;
+
+			ImGui::Begin("debug");
+              // Display some text (you can use a format strings too)
+			ImGui::Checkbox("Another Window", &show_another_window);
+			ImGui::Checkbox("Enable_terrain_gen", &World.Enable_terrain_gen);
+
+			ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
+			ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
+
+			if (ImGui::Button("Button"))                            // Buttons return true when clicked (most widgets return true when edited/activated)
+				counter++;
+			ImGui::SameLine();
+			ImGui::Text("counter = %d", counter);
+
+			ImGui::Text("chunks in game: %lu", World.chunk.size());
+
+			ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
+			ImGui::Text("render average %.3f ms", (glfwGetTime() - start) * 1000);
+			ImGui::Text("update average %.3f ms", updateend);
+			ImGui::End();;
+		}
+
+		if (show_another_window)
+		{
+			ImGui::Begin("Another Window", &show_another_window);   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
+			ImGui::Text("Hello from another window!");
+			if (ImGui::Button("Close Me"))
+				show_another_window = false;
+			ImGui::End();
+		}
+
 		ui.render(uishader);
 
 		ImGui::Render();

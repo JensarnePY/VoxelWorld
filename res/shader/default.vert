@@ -30,21 +30,30 @@ vec3 getPos(int index) {
 }
 
 
+//const vec2 texUV[4] = vec2[4]
+//(
+//	vec2(0.0f, 0.0f),
+//	vec2(1.0f, 0.0f),
+//	vec2(0.0f, 1.0f),
+//	vec2(1.0f, 1.0f)
+//);
+
 const vec2 texUV[4] = vec2[4]
 (
 	vec2(0.0f, 0.0f),
-	vec2(1.0f, 0.0f),
-	vec2(0.0f, 1.0f),
-	vec2(1.0f, 1.0f)
+	vec2(2.0f, 0.0f),
+	vec2(0.0f, 2.0f),
+	vec2(2.0f, 2.0f)
 );
 
-int indices[6] = {0, 3, 1, 0, 2, 3};
+
+int indices[3] = {0, 3, 1};
 
 
 void main()
 {
-    const int index = gl_VertexID / 6;
-    const int currVertexID = gl_VertexID % 6;
+    const int index = gl_VertexID / 3;
+    const int currVertexID = gl_VertexID % 3;
 
 
     blockID  = data[index].blockID;
@@ -55,10 +64,10 @@ void main()
 
 		const vec3 topfacePos[4] = vec3[4]
 		(
-			vec3(0.0f, 1.0f, 1.0f),
+			vec3(-1.0f, 1.0f, 1.0f),
 			vec3(1.0f, 1.0f, 1.0f),
-			vec3(0.0f, 1.0f, 0.0f),
-			vec3(1.0f, 1.0f, 0.0f)
+			vec3(-1.0f, 1.0f, -1.0f),
+			vec3(1.0f, 1.0f, -1.0f)
 		);
 
 		pos += topfacePos   [indices[currVertexID]];
@@ -69,10 +78,10 @@ void main()
 
 		const vec3 bottomfacePos[4] = vec3[4]
 		(
-			vec3(1.0f, 0.0f, 1.0f),
+			vec3(2.0f, 0.0f, 1.0f),
 			vec3(0.0f, 0.0f, 1.0f),
-			vec3(1.0f, 0.0f, 0.0f),
-			vec3(0.0f, 0.0f, 0.0f)
+			vec3(2.0f, 0.0f, -1.0f),
+			vec3(0.0f, 0.0f, -1.0f)
 		);
 
 		pos += bottomfacePos[indices[currVertexID]];
@@ -83,10 +92,10 @@ void main()
 
 		const vec3 rightfacePos[4] = vec3[4]
 		(
-			vec3(1.0f, 0.0f, 1.0f),
+			vec3(1.0f, 0.0f, 2.0f),
 			vec3(1.0f, 0.0f, 0.0f),
-			vec3(1.0f, 1.0f, 1.0f),
-			vec3(1.0f, 1.0f, 0.0f)
+			vec3(1.0f, 2.0f, 2.0f),
+			vec3(1.0f, 2.0f, 0.0f)
 		);
 
 		pos += rightfacePos [indices[currVertexID]];
@@ -97,10 +106,10 @@ void main()
 
 		const vec3 leftfacePos[4] = vec3[4]
 		(
-			vec3(0.0f, 0.0f, 0.0f),
+			vec3(0.0f, 0.0f, -1.0f),
 			vec3(0.0f, 0.0f, 1.0f),
-			vec3(0.0f, 1.0f, 0.0f),
-			vec3(0.0f, 1.0f, 1.0f)
+			vec3(0.0f, 2.0f, -1.0f),
+			vec3(0.0f, 2.0f, 1.0f)
 		);
 
 		pos += leftfacePos  [indices[currVertexID]];
@@ -111,10 +120,10 @@ void main()
 
 		const vec3 backfacePos[4] = vec3[4]
 		(
-			vec3(0.0f, 0.0f, 1.0f),
-			vec3(1.0f, 0.0f, 1.0f),
-			vec3(0.0f, 1.0f, 1.0f),
-			vec3(1.0f, 1.0f, 1.0f)
+			vec3(-1.0f, 0.0f,  1.0f),
+			vec3(1.0f, 0.0f,   1.0f),
+			vec3(-1.0f, 2.0f,  1.0f),
+			vec3(1.0f, 2.0f,   1.0f)
 		);
 
 		pos += backfacePos  [indices[currVertexID]];
@@ -125,17 +134,16 @@ void main()
 		
 		const vec3 frontfacePos[4] = vec3[4]
 		(
-			vec3(1.0f, 0.0f, 0.0f),
+			vec3(2.0f, 0.0f, 0.0f),
 			vec3(0.0f, 0.0f, 0.0f),
-			vec3(1.0f, 1.0f, 0.0f),
-			vec3(0.0f, 1.0f, 0.0f)
+			vec3(2.0f, 2.0f, 0.0f),
+			vec3(0.0f, 2.0f, 0.0f)
 		);
 
 		pos += frontfacePos [indices[currVertexID]];
 		texCoord = texUV[indices[currVertexID]];
 		normal = vec3(0.0f, 0.0f, -1.0f);
 	}
-
     vec3 worldPos = vec3(model * vec4(pos, 1.0));
 	FragPosLightSpace = lightWVP * vec4(worldPos, 1.0);
     gl_Position = camMatrix * vec4(worldPos, 1.0);
