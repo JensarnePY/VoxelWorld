@@ -214,7 +214,7 @@ int main()
 
 
 		if (camera.exit()) return 0;
-
+		 
 
 		camera.Inputs(window, input, dt);
 		camera.updateMatrix(70.0f, 0.1f, 10000.0f);
