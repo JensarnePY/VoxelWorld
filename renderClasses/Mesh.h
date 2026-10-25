@@ -47,15 +47,14 @@ class Mesh
 {
 public:
 	std::vector <Vertex> vertices;
-	std::vector <Texture> textures;
 
 	GLuint EmptyVAOID = 0;
 	GLuint SSBOvert = 0;
 
 	Mesh() = default;
-	const void makeMash(std::vector <Texture>& textures);
+	const void makeMash();
 	void clear();
-	void Draw(Shader& shader, Camera& camera);
+	void Draw();
 };
 
 
@@ -71,7 +70,7 @@ public:
 	WaterMesh() = default;
 	const void makeMash(std::vector <Texture>& textures);
 	void clear();
-	void Draw(Shader& shader, Camera& camera);
+	void Draw();
 };
 
 

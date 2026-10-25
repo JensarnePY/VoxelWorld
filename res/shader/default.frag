@@ -1,4 +1,9 @@
 #version 460 core
+#extension GL_ARB_bindless_texture : require
+
+layout (binding = 1, std430) readonly buffer texhandels{
+	sampler2D tex[];
+};
 
 out vec4 FragColor;
 
@@ -8,18 +13,6 @@ in vec3 normal;
 in vec2 texCoord;
 in float face;
 in float blockID;
-
-
-uniform sampler2D tex0;
-uniform sampler2D tex1;
-uniform sampler2D tex2;
-uniform sampler2D tex3;
-uniform sampler2D tex4;
-uniform sampler2D tex5;
-uniform sampler2D tex6;
-uniform sampler2D tex7;
-
-//uniform sampler2D shadowMap;
 
 uniform vec3 camPos;
 uniform vec3 camDir;
@@ -35,39 +28,6 @@ uniform float time;
 //	sand = 7
 //
 
-
-//float ShadowCalculation(vec4 fragPosLightSpace)
-//{
-//    vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
-//
-//    projCoords = projCoords * 0.5 + 0.5;
-//
-//    float closestDepth = texture(shadowMap, projCoords.xy).r; 
-//
-//    float currentDepth = projCoords.z;
-//
-//    vec3 _normal = normalize(normal);
-//    vec3 lightDir = normalize(vec3(20.0f, 20.0f, 0.0f) - pos);
-//    float bias = max(0.05 * (1.0 - dot(_normal, lightDir)), 0.005);
-//
-//    float shadow = 0.0;
-//    vec2 texelSize = 1.0 / textureSize(shadowMap, 0);
-//    for(int x = -1; x <= 1; ++x)
-//    {
-//        for(int y = -1; y <= 1; ++y)
-//        {
-//            float pcfDepth = texture(shadowMap, projCoords.xy + vec2(x, y) * texelSize).r; 
-//            shadow += currentDepth - bias > pcfDepth  ? 1.0 : 0.0;        
-//        }    
-//    }
-//    shadow /= 9.0;
-//    
-//    if(projCoords.z > 1.0)
-//        shadow = 0.0;
-//        
-//    return shadow;
-//}
-//
 float CalcExpFogFactor(vec3 worldpos)
 {
 	float fogend = 40 * 32;
@@ -83,45 +43,41 @@ float CalcExpFogFactor(vec3 worldpos)
 
 void main()
 {
-	
 	if(texCoord.x < 1.0f || texCoord.y > 1.0f) {discard;}
-
-	//ambient lighting
-	float ambient = 0.4f;
-
 	
 	// diffuse lighting
 	vec3 Normal = normalize(normal);
 	vec3 lightDirection = normalize(vec3(1.5f, 1.0f, 1.25f));
 	float diffuse = max(dot(Normal, lightDirection), 0.0f);
 	
+	float ambient = 0.4f;
 	float addon = ambient + diffuse;
 	vec4 tempcolor;
 
 	if(blockID == 1){
 
-		if(face == 0) tempcolor = texture(tex0, texCoord) * addon;
-		else if(face == 1) tempcolor = texture(tex1, texCoord) * addon;
-		else tempcolor = texture(tex2, texCoord) * addon;
+		if(face == 0) tempcolor = texture(tex[0], texCoord) * addon;
+		else if(face == 1) tempcolor = texture(tex[1], texCoord) * addon;
+		else tempcolor = texture(tex[2], texCoord) * addon;
 
 	}if(blockID == 2){
 
-		tempcolor = texture(tex1, texCoord) * addon;
+		tempcolor = texture(tex[1], texCoord) * addon;
 	}if(blockID == 3){
 
-		tempcolor = texture(tex3, texCoord) * addon;
+		tempcolor = texture(tex[3], texCoord) * addon;
 	}if(blockID == 4){
 
-		tempcolor = texture(tex4, texCoord) * addon;
+		tempcolor = texture(tex[4], texCoord) * addon;
 	}if(blockID == 5){
 
-		tempcolor = texture(tex5, texCoord) * addon;
+		tempcolor = texture(tex[5], texCoord) * addon;
 	}if(blockID == 6){
 
-		tempcolor = texture(tex6, texCoord) * addon;
+		tempcolor = texture(tex[6], texCoord) * addon;
 	}if(blockID == 7){
 
-		tempcolor = texture(tex7, texCoord) * 0.6f * addon;
+		tempcolor = texture(tex[7], texCoord) * 0.6f * addon;
 	}
 
 	float fogfactor = CalcExpFogFactor(pos);

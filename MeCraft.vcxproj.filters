@@ -39,9 +39,6 @@
     <ClCompile Include="world.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="glad.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="renderClasses\UI.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -81,6 +78,12 @@
     <ClCompile Include="inputhandler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="renderClasses\BLtex.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="glad.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="renderClasses\Mesh.h">
@@ -90,9 +93,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="renderClasses\Texture.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Libraries\include\glad\glad.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Libraries\include\GLFW\glfw3.h">
@@ -896,6 +896,12 @@
     <ClInclude Include="inputhandler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="renderClasses\BLtex.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Libraries\include\glad\glad.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Libraries\include\glm\detail\func_common.inl">
@@ -1364,5 +1370,8 @@
     <Image Include="res\tex\stone.png">
       <Filter>Resource Files</Filter>
     </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <Library Include="Libraries\lib\glfw3.lib" />
   </ItemGroup>
 </Project>

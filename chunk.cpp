@@ -320,7 +320,7 @@ void chunkdata::reload() {
 	std::vector<Texture> textures;
 	make_vertices();
 	make_water_vertices();
-	mesh.makeMash(textures);
+	mesh.makeMash();
 	watermesh.makeMash(textures);
 	gen = true;
 }

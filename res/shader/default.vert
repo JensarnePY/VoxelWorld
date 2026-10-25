@@ -1,4 +1,5 @@
 #version 460 core
+#extension GL_ARB_bindless_texture : require
 
 struct Vertex {
     float position[3];
@@ -28,15 +29,6 @@ vec3 getPos(int index) {
                 data[index].position[1],
                 data[index].position[2]);
 }
-
-
-//const vec2 texUV[4] = vec2[4]
-//(
-//	vec2(0.0f, 0.0f),
-//	vec2(1.0f, 0.0f),
-//	vec2(0.0f, 1.0f),
-//	vec2(1.0f, 1.0f)
-//);
 
 const vec2 texUV[4] = vec2[4]
 (

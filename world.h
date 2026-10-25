@@ -2,15 +2,17 @@
 #include <algorithm>
 #include <thread>
 #include "renderClasses/Mesh.h"
-#include "FastNoiseLite.h"
-#include "chunk.h"
-#include "camera.h"
 #include <chrono>
 #include<glm/glm.hpp>
 #include<glm/gtc/matrix_transform.hpp>
 #include<glm/gtc/type_ptr.hpp>
 #include<glm/gtx/rotate_vector.hpp>
 #include<glm/gtx/vector_angle.hpp>
+
+#include "FastNoiseLite.h"
+#include "chunk.h"
+#include "camera.h"
+#include "renderClasses/BLtex.h"
 
 class chunkdata;
 
@@ -31,20 +33,11 @@ private:
 	std::vector<glm::vec3> in_render_distent_pos;
 public:
 	
-	std::vector<Texture> textures{
-		Texture("res/tex/grass_top.png",    0, GL_RGBA, GL_UNSIGNED_BYTE),
-		Texture("res/tex/grass_bottom.png", 1, GL_RGBA, GL_UNSIGNED_BYTE),
-		Texture("res/tex/grass_side.png",   2, GL_RGBA, GL_UNSIGNED_BYTE),
-		Texture("res/tex/stone.png",        3, GL_RGBA, GL_UNSIGNED_BYTE),
-		Texture("res/tex/log.png",          4, GL_RGBA, GL_UNSIGNED_BYTE),
-		Texture("res/tex/leaves.png",       5, GL_RGBA, GL_UNSIGNED_BYTE),
-		Texture("res/tex/water.png",        6, GL_RGBA, GL_UNSIGNED_BYTE),
-		Texture("res/tex/sand.png",         7, GL_RGBA, GL_UNSIGNED_BYTE),
-	};
-
+	BLtex BLtexture;
 	std::vector<Texture> watertextures{
 		Texture("res/tex/water.png", 0, GL_RGBA, GL_UNSIGNED_BYTE),
 	};
+
 	bool Enable_terrain_gen = true;
 	FastNoiseLite Noise;
 	std::vector<chunkdata> genqueue;

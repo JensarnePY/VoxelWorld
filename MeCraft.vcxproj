@@ -147,10 +147,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="glad.c" />
+    <ClCompile Include="renderClasses\BLtex.cpp" />
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="chunk.cpp" />
     <ClCompile Include="collision.cpp" />
-    <ClCompile Include="glad.c" />
     <ClCompile Include="inputhandler.cpp" />
     <ClCompile Include="Inventory.cpp" />
     <ClCompile Include="Libraries\include\glm\detail\glm.cpp" />
@@ -171,13 +172,14 @@
     <ClCompile Include="world.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Libraries\include\glad\glad.h" />
+    <ClInclude Include="renderClasses\BLtex.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="chunk.h" />
     <ClInclude Include="collision.h" />
     <ClInclude Include="inputhandler.h" />
     <ClInclude Include="Inventory.h" />
     <ClInclude Include="Libraries\include\FastNoiseLite.h" />
-    <ClInclude Include="Libraries\include\glad\glad.h" />
     <ClInclude Include="Libraries\include\GLFW\glfw3.h" />
     <ClInclude Include="Libraries\include\GLFW\glfw3native.h" />
     <ClInclude Include="Libraries\include\glm\common.hpp" />
@@ -608,6 +610,9 @@
     <Image Include="res\tex\UI_inv.png" />
     <Image Include="res\tex\UI_inv_selct.png" />
     <Image Include="res\tex\water.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Library Include="Libraries\lib\glfw3.lib" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

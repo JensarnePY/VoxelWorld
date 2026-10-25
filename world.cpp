@@ -59,7 +59,7 @@ world::world() {
 	Noise.SetFractalLacunarity(3.0f);
 	Noise.SetFractalGain(0.5f);
 	Noise.SetFractalWeightedStrength(1.0f);
-
+	BLtexture.init();
 	gen_thread = std::thread(&gen_q, &genqueue, &Noise, &gen_complete);
 }
 world::~world() {
@@ -146,7 +146,7 @@ void world::pre_load_chunk(glm::vec3 pos, int renderDistent) {
 	// load the mesh to the GPU
 	for (auto& chunk : chunk) {
 		if (chunk.mesh.vertices.size() != 0) {
-			chunk.mesh.makeMash(textures);
+			chunk.mesh.makeMash();
 			chunk.render = true;
 			chunk.loaded_to_gpu = true;
 		}
@@ -171,7 +171,7 @@ void world::update(Camera& camera) {
 
 			if (pos.mesh.vertices.size() != 0) {
 				//std::cout << "e\n";
-				pos.mesh.makeMash(textures);
+				pos.mesh.makeMash();
 				pos.render = true;
 				pos.loaded_to_gpu = true;
 			}
@@ -231,15 +231,11 @@ int world::render(Shader& shader, Shader& watershader, Camera& camera) {
 	glDisable(GL_BLEND);
 	glEnable(GL_CULL_FACE);
 	shader.Activate();
-
-	for (unsigned int i = 0; i < textures.size(); i++) {
-		textures[i].texUnit(shader, ("tex" + std::to_string(i)).c_str(), i);
-		textures[i].Bind();
-	}
+	BLtexture.bindSSBO();
 
 	for (auto& chunk : chunk) {
 		if (chunk.render) {
-			chunk.mesh.Draw(shader, camera);
+			chunk.mesh.Draw();
 			i++;
 		}
 	}
@@ -254,7 +250,7 @@ int world::render(Shader& shader, Shader& watershader, Camera& camera) {
 
 	for (auto& chunk : chunk) {
 		if (chunk.waterrender) {
-			chunk.watermesh.Draw(watershader, camera);
+			chunk.watermesh.Draw();
 			i++;
 		}
 	}

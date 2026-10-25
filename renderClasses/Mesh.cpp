@@ -1,8 +1,6 @@
 #include "Mesh.h"
 
-const void Mesh::makeMash(std::vector <Texture>& textures) {
-
-	Mesh::textures = textures;
+const void Mesh::makeMash() {
 
 	glGenVertexArrays(1, &EmptyVAOID);
 	glBindVertexArray(EmptyVAOID);
@@ -15,7 +13,6 @@ const void Mesh::makeMash(std::vector <Texture>& textures) {
 		Mesh::vertices.data(),
 		GL_DYNAMIC_STORAGE_BIT);
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, SSBOvert);
-
 }
 
 void Mesh::clear() {
@@ -24,11 +21,10 @@ void Mesh::clear() {
 	SSBOvert = 0;
 	EmptyVAOID = 0;
 	vertices.clear();
-	textures.clear();
 }
 
 
-void Mesh::Draw(Shader& shader, Camera& camera)
+void Mesh::Draw()
 {
 	glBindVertexArray(EmptyVAOID);
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, SSBOvert);
@@ -62,8 +58,7 @@ void WaterMesh::clear() {
 	textures.clear();
 }
 
-void WaterMesh::Draw(Shader& shader, Camera& camera)
-{
+void WaterMesh::Draw(){
 	glBindVertexArray(EmptyVAOID);
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, SSBOvert);
 	glDrawArrays(GL_TRIANGLES, 0, vertices.size() * 6);
