@@ -35,6 +35,21 @@ void gen_q(std::vector<chunkdata>* genqueue, const FastNoiseLite* Noise, bool* g
 
 world::world() {
 
+	for (int x = -m_render_distent; x <= m_render_distent; x++) {
+		for (int y = -m_render_distent / 2; y <= m_render_distent / 2; y++) {
+			for (int z = -m_render_distent; z <= m_render_distent; z++) {
+
+				glm::vec3 newChunkPos((player_chunk.x + x) * chunkSize, (player_chunk.y + y) * chunkSize, (player_chunk.z + z) * chunkSize);
+
+				in_render_distent_pos.push_back(newChunkPos);
+			}
+		}
+	}
+
+	std::sort(chunk.begin(), chunk.end(), [&](const chunkdata& a, const chunkdata& b) {
+		return glm::distance(glm::vec3(0.0f), a.pos) < glm::distance(glm::vec3(0.0f), b.pos);
+		});
+
 	Noise.SetNoiseType(FastNoiseLite::NoiseType_Perlin);
 	Noise.SetSeed(1337);
 	Noise.SetFrequency(0.01f);
@@ -145,7 +160,7 @@ void world::pre_load_chunk(glm::vec3 pos, int renderDistent) {
 	std::cout << ((glfwGetTime() - start) * 1000) / ChunkToLoad.size() << "ms per chunk\n";
 }
 
-void world::update(Camera& camera, int renderDistent) {
+void world::update(Camera& camera) {
 
 	player_last_chunk = player_chunk;
 	player_chunk = glm::ivec3(camera.Position / glm::vec3(chunkSize));
@@ -175,14 +190,13 @@ void world::update(Camera& camera, int renderDistent) {
 		genqueue.clear();
 
 		//if (player_chunk == player_last_chunk) {
-			for (int x = -renderDistent; x <= renderDistent; x++) {
-				for (int y = -renderDistent / 2; y <= renderDistent / 2; y++) {
-					for (int z = -renderDistent; z <= renderDistent; z++) {
+			for (int x = -m_render_distent; x <= m_render_distent; x++) {
+				for (int y = -m_render_distent / 2; y <= m_render_distent / 2; y++) {
+					for (int z = -m_render_distent; z <= m_render_distent; z++) {
 
 						glm::vec3 newChunkPos((player_chunk.x + x) * chunkSize, (player_chunk.y + y) * chunkSize, (player_chunk.z + z) * chunkSize);
 
-						if (!chunkExists(chunk, newChunkPos) && !chunkExists(empty_chunk, newChunkPos) && genqueue.size() <= m_MAX_threads_gen) {
-							//std::cout << "Adding chunk to genqueue: " << newChunkPos.x << ", " << newChunkPos.y << ", " << newChunkPos.z << "\n";
+						if (!chunkExists(chunk, newChunkPos) && !chunkExists(empty_chunk, newChunkPos) && genqueue.size() <= m_MAX_threads_gen && glm::distance(camera.Position, newChunkPos) < m_render_distent * chunkSize) {
 							genqueue.push_back(newChunkPos);
 						}
 					}
@@ -191,52 +205,58 @@ void world::update(Camera& camera, int renderDistent) {
 		//}
 		gen_complete = false;
 	}
-
-
+	//std::sort(chunk.begin(), chunk.end(), [&](const chunkdata& a, const chunkdata& b) {
+	//	return glm::distance(camera.Position, a.pos) < glm::distance(camera.Position, b.pos);
+	//	});
 	
 	// load the mesh to the GPU
-	//for (auto& chunk : chunk) {
-	//
-	//	
-	//
-	//	if (chunk.gen == false && glm::distance(camera.Position, chunk.pos) < m_render_distent) {
-	//		chunk.reload();
-	//	}
-	//	if (glm::distance(camera.Position, chunk.pos) > m_render_distent) {
-	//		chunk.gen = false;
-	//		chunk.render = false;
-	//		chunk.waterrender = false;
-	//		chunk.loaded_to_gpu = false;
-	//		chunk.water_loaded_to_gpu = false;
-	//		chunk.mesh.clear();
-	//		chunk.watermesh.clear();
-	//	}
-	//	if (chunk.gen == true && chunk.mesh.vertices.size() != 0 && chunk.loaded_to_gpu == false) {
-	//		chunk.mesh.makeMash(textures);
-	//		chunk.render = true;
-	//		chunk.loaded_to_gpu = true;
-	//	}
-	//	if (chunk.gen == true && chunk.watermesh.vertices.size() != 0 && chunk.water_loaded_to_gpu == false) {
-	//		chunk.watermesh.makeMash(watertextures);
-	//		chunk.waterrender = true;
-	//		chunk.water_loaded_to_gpu = true;
-	//	}
-	//}
+	for (int i = 0; i < chunk.size(); i++) {
+		if (glm::distance(camera.Position, chunk[i].pos) > m_render_distent * chunkSize) {
+			chunk.erase(chunk.begin() + i);
+			return;
+		}
+		i++;
+	}
+	for (int i = 0; i < empty_chunk.size(); i++) {
+		if (glm::distance(camera.Position, empty_chunk[i].pos) > m_render_distent * chunkSize) {
+			empty_chunk.erase(empty_chunk.begin() + i);
+			return;
+		}
+		i++;
+	}
 }
 
-void  world::render(Shader& shader, Shader& watershader, Camera& camera) {
+int world::render(Shader& shader, Shader& watershader, Camera& camera) {
+	int i = 0;
 	glDisable(GL_BLEND);
 	glEnable(GL_CULL_FACE);
+	shader.Activate();
+
+	for (unsigned int i = 0; i < textures.size(); i++) {
+		textures[i].texUnit(shader, ("tex" + std::to_string(i)).c_str(), i);
+		textures[i].Bind();
+	}
+
 	for (auto& chunk : chunk) {
 		if (chunk.render) {
 			chunk.mesh.Draw(shader, camera);
+			i++;
 		}
 	}
 	glDisable(GL_CULL_FACE);
 	glEnable(GL_BLEND);
+	watershader.Activate();
+
+	for (unsigned int i = 0; i < watertextures.size(); i++) {
+		watertextures[i].texUnit(watershader, ("tex" + std::to_string(i)).c_str(), i);
+		watertextures[i].Bind();
+	}
+
 	for (auto& chunk : chunk) {
 		if (chunk.waterrender) {
 			chunk.watermesh.Draw(watershader, camera);
+			i++;
 		}
 	}
+	return i;
 }

@@ -1,5 +1,5 @@
 #pragma once
-#include <future>
+#include <algorithm>
 #include <thread>
 #include "renderClasses/Mesh.h"
 #include "FastNoiseLite.h"
@@ -24,10 +24,11 @@ struct raycastRES
 
 class world {
 private:
-	int m_MAX_threads_gen = 120;
+	const int m_MAX_threads_gen = 1000;
 	const int chunkSize = 64;
-	const int m_render_distent = 200 * chunkSize;
+	const int m_render_distent = 15;
 	bool gen_complete = true;
+	std::vector<glm::vec3> in_render_distent_pos;
 public:
 	
 	std::vector<Texture> textures{
@@ -59,6 +60,6 @@ public:
 	chunkdata* getchunk(int x, int y, int z);
 	void print_vec3(glm::vec3 vec3);
 	void pre_load_chunk(glm::vec3 pos, int renderDistent);
-	void update(Camera& camera, int renderDistent);
-	void render(Shader& shader, Shader& watershader, Camera& camera);
+	void update(Camera& camera);
+	int render(Shader& shader, Shader& watershader, Camera& camera);
 };

@@ -27,18 +27,9 @@ void Mesh::clear() {
 	textures.clear();
 }
 
+
 void Mesh::Draw(Shader& shader, Camera& camera)
 {
-	shader.Activate();
-
-	for (unsigned int i = 0; i < textures.size(); i++){
-		textures[i].texUnit(shader, ("tex" + std::to_string(i)).c_str(), i);
-		textures[i].Bind();
-	}
-
-	glUniform3f(glGetUniformLocation(shader.ID, "camPos"), camera.Position.x, camera.Position.y, camera.Position.z);
-	camera.Matrix(shader, "camMatrix");
-
 	glBindVertexArray(EmptyVAOID);
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, SSBOvert);
 	glDrawArrays(GL_TRIANGLES, 0, vertices.size() * 3);
@@ -73,16 +64,6 @@ void WaterMesh::clear() {
 
 void WaterMesh::Draw(Shader& shader, Camera& camera)
 {
-	shader.Activate();
-
-	for (unsigned int i = 0; i < textures.size(); i++) {
-		textures[i].texUnit(shader, ("tex" + std::to_string(i)).c_str(), i);
-		textures[i].Bind();
-	}
-
-	glUniform3f(glGetUniformLocation(shader.ID, "camPos"), camera.Position.x, camera.Position.y, camera.Position.z);
-	camera.Matrix(shader, "camMatrix");
-
 	glBindVertexArray(EmptyVAOID);
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, SSBOvert);
 	glDrawArrays(GL_TRIANGLES, 0, vertices.size() * 6);

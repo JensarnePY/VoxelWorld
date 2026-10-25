@@ -52,7 +52,6 @@ bool inputhandler::switch_key(GLFWwindow* window, short key) {
 
 		e = true;
 	}
-	std::cout << e << "\n";
 	return e;
 
 }

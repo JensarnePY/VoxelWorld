@@ -21,7 +21,7 @@ int chunkdata::getpos(float x, float z) const {
 }
 
 float chunkdata::noise(float x, float z, const FastNoiseLite* Noise) const{
-	return Noise->GetNoise(x / 5, z / 5) * 600;
+	return Noise->GetNoise(x / 10, z / 10) * 600;
 }
 
 bool chunkdata::issafe(int i) {
@@ -259,12 +259,13 @@ void chunkdata::gen_chunkdata(const FastNoiseLite* Noise) {
 	for (int z = 0; z < chunkSize + 2; z++) {
 		for (int x = 0; x < chunkSize + 2; x++) {
 
-			const float h = noise(x + pos.x, z + pos.z, Noise);
+			const float h = noise((x + pos.x), (z + pos.z), Noise);
 
 			for (int y = 0; y < chunkSize + 2; y++) {
 
 				if (h > y + pos.y) {
-					const float N3D = Noise->GetNoise(x + pos.x, y + pos.y, z + pos.z);
+					//const float N3D = Noise->GetNoise(x + pos.x, y + pos.y, z + pos.z);
+					const float N3D = 0.0f;
 
 					if ((h > y + pos.y || y + pos.y <= 0 && N3D < 0.2f) && isneededtoload == false) {
 						isneededtoload = true;

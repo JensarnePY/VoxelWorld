@@ -56,7 +56,7 @@ int main()
 	*/
 
 	world World;
-	World.pre_load_chunk(glm::vec3(0.0f), 3);
+	World.pre_load_chunk(glm::vec3(0.0f), 2);
 
 	Camera camera(width, height, glm::vec3(0.0f, 100.0f, 0.0f));
 	collision collision;
@@ -71,9 +71,8 @@ int main()
 	glEnable(GL_DEPTH_TEST);
 	glfwSwapInterval(0);
 
-	int cn = 0;
+	double vsync_wait_time = 0;
 	double time = glfwGetTime();
-	double time2 = glfwGetTime();
 
 	bool lastmou_right = GLFW_RELEASE;
 	bool lastmou_left = GLFW_RELEASE;
@@ -100,6 +99,7 @@ int main()
 	//ImGui::SetCurrentContext();
 	while (!glfwWindowShouldClose(window))
 	{
+		
 		double dt = glfwGetTime() - time;
 		time = glfwGetTime();
 
@@ -180,25 +180,31 @@ int main()
 
 
 		if (camera.exit()) return 0;
-		 
 
+		
+		
 		camera.Inputs(window, input, dt);
 		camera.updateMatrix(70.0f, 0.1f, 10000.0f);
 
 		defaultshader.Activate();
+		camera.Matrix(defaultshader, "camMatrix");
 		glUniform1f(glGetUniformLocation(defaultshader.ID, "time"), (float)glfwGetTime());
+		glUniform3f(glGetUniformLocation(defaultshader.ID, "camPos"), camera.Position.x, camera.Position.y, camera.Position.z);
+
 		watershader.Activate();
+		camera.Matrix(watershader, "camMatrix");
 		glUniform1f(glGetUniformLocation(watershader.ID, "time"), (float)glfwGetTime());
+		glUniform3f(glGetUniformLocation(watershader.ID, "camPos"), camera.Position.x, camera.Position.y, camera.Position.z);
 		glUniform3f(glGetUniformLocation(watershader.ID, "camDir"), camera.Orientation.x,
 			camera.Orientation.y,
 			camera.Orientation.z);
-
+		
 		//update all
 		//__________________________________
 		
 		auto updatestart = glfwGetTime();
 
-		World.update(camera, 10);
+		World.update(camera);
 		//inventory.update();
 		//collision.player_collision(camera, World);
 		//ui.update(inventory);
@@ -212,8 +218,8 @@ int main()
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		auto start = glfwGetTime();
-		World.render(defaultshader, watershader, camera);
-		//std::cout << (glfwGetTime() - start) * 1000 << "ms \n";
+
+		int drawcalls = World.render(defaultshader, watershader, camera);
 
 
 		// render ui
@@ -236,13 +242,15 @@ int main()
 			ImGui::Text("counter = %d", counter);
 
 			ImGui::Text("chunks in game: %lu", World.chunk.size());
+			ImGui::Text("chunks drawcalls: %lu", drawcalls);
 
-			ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
+			ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", dt * 1000, io.Framerate);
 			ImGui::Text("render average %.3f ms", (glfwGetTime() - start) * 1000);
-			ImGui::Text("update average %.3f ms", updateend);
-			ImGui::End();;
+			ImGui::Text("world update %.3f ms", updateend);
+			ImGui::Text("vsync wait time %.3f ms", vsync_wait_time);
+			ImGui::End();
 		}
-
+		
 		if (show_another_window)
 		{
 			ImGui::Begin("Another Window", &show_another_window);   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
@@ -254,14 +262,21 @@ int main()
 
 		ui.render(uishader);
 
+		
+
 		ImGui::Render();
 		int display_w, display_h;
 		glfwGetFramebufferSize(window, &display_w, &display_h);
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
-
-		glfwSwapBuffers(window);
-		glfwPollEvents();
+		{
+			double vsync_wait = glfwGetTime();
+			glfwSwapBuffers(window);
+			vsync_wait_time = (glfwGetTime() - vsync_wait) * 1000;
+			glfwPollEvents();
+		}
+		
+		
 	}
 
 	ImGui_ImplOpenGL3_Shutdown();

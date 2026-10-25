@@ -9,6 +9,7 @@ public:
 	glm::vec3 pos;
 	Mesh mesh;
 	WaterMesh watermesh;
+
 	bool gen = false;
 	bool render = false;
 	bool loaded_to_gpu = false;
